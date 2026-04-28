@@ -1,0 +1,69 @@
+require("dotenv").config();
+
+const express = require("express");
+const fetch = require("node-fetch");
+const cors = require("cors");
+
+const app = express();
+
+// ✅ CORS allow (tumhari local HTML ke liye)
+app.use(cors());
+
+// ✅ Health check route
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// ✅ Main downloader route
+app.get("/download", async (req, res) => {
+  const reelUrl = req.query.url;
+
+  if (!reelUrl) {
+    return res.status(400).json({ error: "Missing URL parameter" });
+  }
+
+  try {
+    const apiUrl =
+      "https://instagram-reels-downloader-api.p.rapidapi.com/download?url=" +
+      encodeURIComponent(reelUrl);
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Key": process.env.API_KEY,
+        "X-RapidAPI-Host":
+          "instagram-reels-downloader-api.p.rapidapi.com",
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "RapidAPI request failed",
+      });
+    }
+
+    const data = await response.json();
+
+    // ✅ Safe response
+    if (data && data.data && data.data.medias) {
+      return res.json(data);
+    } else {
+      return res.status(404).json({
+        error: "Video not found",
+        raw: data,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
+// ✅ Port config (Render ke liye important)
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
