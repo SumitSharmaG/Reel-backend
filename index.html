@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reel Downloader</title>
+
+<style>
+body {
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+
+input {
+  width: 90%;
+  padding: 12px;
+  margin-top: 20px;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  padding: 12px 20px;
+  margin-top: 15px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+video {
+  margin-top: 20px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 10px;
+}
+
+a {
+  display: block;
+  margin-top: 10px;
+  color: yellow;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Instagram Reel Downloader</h2>
+
+<input id="url" placeholder="Paste Instagram Reel URL">
+<br>
+
+<button onclick="getVideo()">Get Video</button>
+
+<br>
+
+<video id="player" controls></video>
+<a id="downloadBtn"></a>
+
+<script>
+async function getVideo(){
+
+  let url = document.getElementById("url").value;
+
+  if(!url){
+    alert("Paste Reel URL first");
+    return;
+  }
+
+  try {
+    let res = await fetch("https://reel-backend-fnow.onrender.com/download?url=" + encodeURIComponent(url));
+    let data = await res.json();
+
+    console.log(data);
+
+    let video = data?.data?.medias?.find(m => m.type === "video")?.url;
+
+    if(video){
+      document.getElementById("player").src = video;
+      document.getElementById("downloadBtn").href = video;
+      document.getElementById("downloadBtn").innerText = "Download Video";
+    } else {
+      alert("Video not found");
+    }
+
+  } catch(e){
+    alert("Error fetching video");
+    console.log(e);
+  }
+}
+</script>
+
+</body>
+</html>
